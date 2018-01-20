@@ -2,6 +2,8 @@ package dot
 
 import (
 	"bytes"
+	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -12,8 +14,8 @@ var emptyGraph = `digraph testGraph {
 
 func TestMakeWriteEmptyGraph(t *testing.T) {
 	buf := new(bytes.Buffer)
-	g := NewGraph("testGraph", buf)
-	err := g.WriteDot()
+	g := NewGraph("testGraph")
+	err := g.WriteDot(buf)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,9 +31,9 @@ vTo -> vFrom
 
  }`
 
-func TestAddEdge(t *testing.T) {
+func ExampleAddEdge() {
 	buf := new(bytes.Buffer)
-	g := NewGraph("testGraph", buf)
+	g := NewGraph("testGraph")
 	vTo := &VertexDescription {
 		ID: "vTo",
 	}
@@ -39,15 +41,18 @@ func TestAddEdge(t *testing.T) {
 		ID: "vFrom",
 	}
 	g.AddEdge(vTo, vFrom, true)
-	err := g.WriteDot()
-	if err != nil{
-		t.Fatal(err)
-	}
-	s := buf.String()
-	if s != edgeGraph {
-		t.Errorf("unexpected output: \n%s",s)
-	}
+	g.WriteDot(buf)
 
+	s := buf.String()
+	lines := strings.Split(s, "\n")
+	fmt.Printf("%d\n", len(lines))
+	if len(lines) < 3 {
+		return
+	}
+	fmt.Println(lines[2])
+	// Output:
+	// 5
+	// vTo -> vFrom 
 }
 
 var vertexGraph = `digraph testGraph {
@@ -58,13 +63,13 @@ v [label="vertex"]
 
 func TestAddVertex(t *testing.T) {
 	buf := new(bytes.Buffer)
-	g := NewGraph("testGraph", buf)
+	g := NewGraph("testGraph")
 	v := &VertexDescription {
 		ID: "v",
 		Label: "vertex",
 	}
 	g.AddVertex(v)
-	err := g.WriteDot()
+	err := g.WriteDot(buf)
 	if err != nil{
 		t.Fatal(err)
 	}
@@ -83,9 +88,9 @@ var commentGraph = `digraph testGraph {
 
 func TestAddComment(t *testing.T) {
 	buf := new(bytes.Buffer)
-	g := NewGraph("testGraph", buf)
+	g := NewGraph("testGraph")
 	g.AddComment("This is a comment")
-	err := g.WriteDot()
+	err := g.WriteDot(buf)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,9 +108,9 @@ var newlineGraph = `digraph testGraph {
 
 func TestAddNewLine(t *testing.T) {
 	buf := new(bytes.Buffer)
-	g := NewGraph("testGraph", buf)
+	g := NewGraph("testGraph")
 	g.AddNewLine()
-	err := g.WriteDot()
+	err := g.WriteDot(buf)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +161,7 @@ I2 -> I1
 
 func TestPrintBasicGraph(t *testing.T) {
 	buf := new(bytes.Buffer)
-	g := NewGraph("cluster", buf)
+	g := NewGraph("cluster")
 	g.AddComment("The nodes of the connectivity graph")
 	g.AddComment("The cluster-service peers")
 	c0 := &VertexDescription{
@@ -224,7 +229,7 @@ func TestPrintBasicGraph(t *testing.T) {
 	g.AddEdge(i2, i0, true)
 	g.AddEdge(i2, i1, true)
 
-	err := g.WriteDot()
+	err := g.WriteDot(buf)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -234,4 +239,3 @@ func TestPrintBasicGraph(t *testing.T) {
 		t.Errorf("The expected output \n%s\n", basicGraph)
 	}
 }
-

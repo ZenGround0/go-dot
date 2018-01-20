@@ -5,13 +5,13 @@ import (
 	"io"
 )
 
+// The graphviz dot-file graph representation.
 type DotGraph struct {
 	Name   string
-	Body []Line
-	w      io.Writer
+	Body []Element
 }
 
-type Line interface {
+type Element interface {
 	Write(io.Writer) error
 }
 
@@ -31,7 +31,7 @@ type Literal struct {
 	Line string
 }
 
-// Write the vertex description to file
+// Write the vertex description to a writer
 func (v *VertexDescription) Write(w io.Writer) error {
 	nodeStr := fmt.Sprintf("%s ", v.ID)
 	// TODO: This is clunky already and certainly won't scale to more
@@ -68,9 +68,8 @@ func (lit *Literal) Write(w io.Writer) error {
 }
 
 // Get a new DotGraph that will write to w
-func NewGraph(name string, w io.Writer) DotGraph {
+func NewGraph(name string) DotGraph {
 	return DotGraph {
-		w: w,
 		Name: name,
 	}
 }
@@ -105,22 +104,22 @@ func (graph *DotGraph) AddEdge(v1 *VertexDescription, v2 *VertexDescription, dir
 	graph.Body = append(graph.Body, edge)
 }
 
-func (graph *DotGraph) WriteDot() error {
+func (graph *DotGraph) WriteDot(w io.Writer) error {
 	title := fmt.Sprintf("digraph %s {\n\n", graph.Name)
-	_, err := io.WriteString(graph.w, title)
+	_, err := io.WriteString(w, title)
 	if err != nil {
 		return err
 	}
 
 	for _, line := range graph.Body {
-		err = line.Write(graph.w)
-		_, err2 := io.WriteString(graph.w, "\n")
+		err = line.Write(w)
+		_, err2 := io.WriteString(w, "\n")
 		if err != nil || err2 != nil {
 			return err
 		}
 		
 	}
 
-	_, err = io.WriteString(graph.w, "\n }")
+	_, err = io.WriteString(w, "\n }")
 	return err
 }

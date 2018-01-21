@@ -1,0 +1,16 @@
+{
+  "author": "ZenGround0",
+  "bugs": {
+    "url": "github.com/ZenGround0/go-dot"
+  },
+  "gx": {
+    "dvcsimport": "github.com/zenground0/go-dot"
+  },
+  "gxVersion": "0.11.0",
+  "language": "go",
+  "license": "",
+  "name": "go-dot",
+  "releaseCmd": "git commit -a -m \"gx publish $VERSION\"",
+  "version": "0.0.0"
+}
+

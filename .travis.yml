@@ -1,0 +1,9 @@
+language: go
+os:
+  - linux
+go:
+- '1.9'
+script:
+- make check
+- make
+- make test

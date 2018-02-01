@@ -31,7 +31,7 @@ vTo -> vFrom
 
  }`
 
-func ExampleAddEdge() {
+func ExampleGraph_AddEdge() {
 	buf := new(bytes.Buffer)
 	g := NewGraph("testGraph")
 	vTo := &VertexDescription {

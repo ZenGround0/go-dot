@@ -1,3 +1,5 @@
+// Package dot provides an abstraction for painlessly building and printing
+// graphviz dot-files
 package dot
 
 import (
@@ -5,33 +7,41 @@ import (
 	"io"
 )
 
-// The graphviz dot-file graph representation.
-type DotGraph struct {
+// Graph is the graphviz dot-file graph representation.
+type Graph struct {
 	Name   string
 	Body []Element
 }
 
+// Element captures the information of a dot-file element,
+// typically corresoponding to one line of the file
 type Element interface {
 	Write(io.Writer) error
 }
 
+// VertexDescription is an element containing all the information needed to
+// fully describe a dot-file vertex
 type VertexDescription struct {
 	ID    string
 	Label string
 	Color string
 }
 
+// EdgeDescription is an element containing all the information needed to
+// fully describe a dot-file edge
 type EdgeDescription struct {
 	From     VertexDescription
 	To       VertexDescription
 	Directed bool
 }
 
+// Literal is an element consisting of the corresponding literal string
+// printed in the dot-file
 type Literal struct {
 	Line string
 }
 
-// Write the vertex description to a writer
+// Write writes the vertex description to a writer
 func (v *VertexDescription) Write(w io.Writer) error {
 	nodeStr := fmt.Sprintf("%s ", v.ID)
 	// TODO: This is clunky already and certainly won't scale to more
@@ -49,7 +59,7 @@ func (v *VertexDescription) Write(w io.Writer) error {
 	return err
 }
 
-// Write the edge description to file
+// Write writes the edge description to a writer
 func (e *EdgeDescription) Write(w io.Writer) error {
 	var arrow string
 	if e.Directed {
@@ -62,19 +72,22 @@ func (e *EdgeDescription) Write(w io.Writer) error {
 	return err
 }
 
+// Write writes the literal to a writer
 func (lit *Literal) Write(w io.Writer) error {
 	_, err := io.WriteString(w, lit.Line)
 	return err
 }
 
-// Get a new DotGraph that will write to w
-func NewGraph(name string) DotGraph {
-	return DotGraph {
+// NewGraph returns a new dot-file graph object given the provided name
+func NewGraph(name string) Graph {
+	return Graph {
 		Name: name,
 	}
 }
 
-func (graph *DotGraph) AddComment(text string) {
+// AddComment interprets the given argument as the text of a comment and
+// schedules the comment to be written in the output dotfile
+func (graph *Graph) AddComment(text string) {
 	commentStr := fmt.Sprintf("/* %s */", text)
 	line := &Literal {
 		Line: commentStr,
@@ -82,20 +95,23 @@ func (graph *DotGraph) AddComment(text string) {
 	graph.Body = append(graph.Body, line)
 }
 
-func (graph *DotGraph) AddNewLine() {
+// AddNewLine schedules a newline to be written in the output dotfile
+func (graph *Graph) AddNewLine() {
 	line := &Literal {
 		Line: "", // newline already printed for every line
 	}
 	graph.Body = append(graph.Body, line)
 }
 
-// Add the vertex 
-func (graph *DotGraph) AddVertex(v *VertexDescription) {
+// AddVertex schedules the vertexdescription to be written in the output
+// dotfile
+func (graph *Graph) AddVertex(v *VertexDescription) {
 	graph.Body = append(graph.Body, v)
 }
 
-// Add an edge, directed or undirected, between the two vertices.  
-func (graph *DotGraph) AddEdge(v1 *VertexDescription, v2 *VertexDescription, directed bool) {
+// AddEdge constructs an edgedescription connecting the two vertices given
+// as parameters and schedules this element to be written in the output dotfile
+func (graph *Graph) AddEdge(v1 *VertexDescription, v2 *VertexDescription, directed bool) {
 	edge := &EdgeDescription{
 		From: *v1,
 		To:   *v2,
@@ -104,7 +120,9 @@ func (graph *DotGraph) AddEdge(v1 *VertexDescription, v2 *VertexDescription, dir
 	graph.Body = append(graph.Body, edge)
 }
 
-func (graph *DotGraph) WriteDot(w io.Writer) error {
+// WriteDot writes the elements scheduled on this Graph to the provided
+// writer to construct a valid dot-file
+func (graph *Graph) WriteDot(w io.Writer) error {
 	title := fmt.Sprintf("digraph %s {\n\n", graph.Name)
 	_, err := io.WriteString(w, title)
 	if err != nil {

@@ -1,0 +1,11 @@
+language: go
+os:
+  - linux
+go:
+- '1.9'
+install:
+- go get github.com/golang/lint/golint
+script:
+- make check
+- make
+- make test
